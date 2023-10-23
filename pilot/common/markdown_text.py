@@ -25,7 +25,7 @@ def generate_markdown_table(data):
 
     # 生成分隔线
     separator = "| "
-    for i in range(num_cols):
+    for _ in range(num_cols):
         separator += "--- | "
 
     # 生成表格内容
@@ -33,19 +33,15 @@ def generate_markdown_table(data):
     for row in data[1:]:
         content += "| "
         for i in range(num_cols):
-            content += str(row[i]) + " | "
+            content += f"{str(row[i])} | "
         content += "\n"
 
-    # 合并表头、分隔线和表格内容
-    table = header + "\n" + separator + "\n" + content
-
-    return table
+    return header + "\n" + separator + "\n" + content
 
 
 def generate_htm_table(data):
     markdown_text = generate_markdown_table(data)
-    html_table = markdown2.markdown(markdown_text, extras=["tables"])
-    return html_table
+    return markdown2.markdown(markdown_text, extras=["tables"])
 
 
 if __name__ == "__main__":

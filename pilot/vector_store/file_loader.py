@@ -88,13 +88,10 @@ class KnownLedge2Vector:
         # Loader file
         if filename.lower().endswith(".pdf"):
             loader = UnstructuredFileLoader(filename)
-            text_splitor = CharacterTextSplitter()
-            docs = loader.load_and_split(text_splitor)
         else:
             loader = UnstructuredFileLoader(filename, mode="elements")
-            text_splitor = CharacterTextSplitter()
-            docs = loader.load_and_split(text_splitor)
-        return docs
+        text_splitor = CharacterTextSplitter()
+        return loader.load_and_split(text_splitor)
 
     def _load_from_url(self, url):
         """Load data from url address"""

@@ -26,7 +26,7 @@ class MSSQLConnect(RDBMSDatabase):
     default_db = ["master", "model", "msdb", "tempdb", "modeldb", "resource", "sys"]
 
     def table_simple_info(self) -> Iterable[str]:
-        _tables_sql = f"""
+        _tables_sql = """
                 SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'
             """
         cursor = self.session.execute(text(_tables_sql))

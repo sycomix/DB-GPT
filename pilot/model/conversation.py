@@ -59,75 +59,50 @@ class Conversation:
         if self.sep_style == SeparatorStyle.ADD_COLON_SINGLE:
             ret = self.system + self.sep
             for role, message in self.messages:
-                if message:
-                    ret += role + ": " + message + self.sep
-                else:
-                    ret += role + ":"
+                ret += f"{role}: {message}{self.sep}" if message else f"{role}:"
             return ret
         elif self.sep_style == SeparatorStyle.ADD_COLON_TWO:
             seps = [self.sep, self.sep2]
             ret = self.system + seps[0]
             for i, (role, message) in enumerate(self.messages):
-                if message:
-                    ret += role + ": " + message + seps[i % 2]
-                else:
-                    ret += role + ":"
+                ret += f"{role}: {message}{seps[i % 2]}" if message else f"{role}:"
             return ret
         elif self.sep_style == SeparatorStyle.ADD_COLON_SPACE_SINGLE:
             ret = self.system + self.sep
             for role, message in self.messages:
-                if message:
-                    ret += role + ": " + message + self.sep
-                else:
-                    ret += role + ": "  # must be end with a space
+                ret += f"{role}: {message}{self.sep}" if message else f"{role}: "
             return ret
         elif self.sep_style == SeparatorStyle.ADD_NEW_LINE_SINGLE:
             ret = "" if self.system == "" else self.system + self.sep
             for role, message in self.messages:
-                if message:
-                    ret += role + "\n" + message + self.sep
-                else:
-                    ret += role + "\n"
+                ret += role + "\n" + message + self.sep if message else role + "\n"
             return ret
         elif self.sep_style == SeparatorStyle.NO_COLON_SINGLE:
             ret = self.system
             for role, message in self.messages:
-                if message:
-                    ret += role + message + self.sep
-                else:
-                    ret += role
+                ret += role + message + self.sep if message else role
             return ret
         elif self.sep_style == SeparatorStyle.NO_COLON_TWO:
             seps = [self.sep, self.sep2]
             ret = self.system
             for i, (role, message) in enumerate(self.messages):
-                if message:
-                    ret += role + message + seps[i % 2]
-                else:
-                    ret += role
+                ret += role + message + seps[i % 2] if message else role
             return ret
         elif self.sep_style == SeparatorStyle.RWKV:
             ret = self.system
-            for i, (role, message) in enumerate(self.messages):
+            for role, message in self.messages:
                 if message:
-                    ret += (
-                        role
-                        + ": "
-                        + message.replace("\r\n", "\n").replace("\n\n", "\n")
-                    )
+                    ret += f"{role}: " + message.replace("\r\n", "\n").replace("\n\n", "\n")
                     ret += "\n\n"
                 else:
-                    ret += role + ":"
+                    ret += f"{role}:"
             return ret
         elif self.sep_style == SeparatorStyle.LLAMA2:
             seps = [self.sep, self.sep2]
             ret = ""
             for i, (role, message) in enumerate(self.messages):
                 if message:
-                    if i == 0:
-                        ret += self.system + message
-                    else:
-                        ret += role + " " + message + seps[i % 2]
+                    ret += self.system + message if i == 0 else f"{role} {message}{seps[i % 2]}"
                 else:
                     ret += role
             return ret
@@ -135,27 +110,17 @@ class Conversation:
             # source: https://huggingface.co/THUDM/chatglm-6b/blob/1d240ba371910e9282298d4592532d7f0f3e9f3e/modeling_chatglm.py#L1302-L1308
             # source2: https://huggingface.co/THUDM/chatglm2-6b/blob/e186c891cf64310ac66ef10a87e6635fa6c2a579/modeling_chatglm.py#L926
             round_add_n = 1 if self.name == "chatglm2" else 0
-            if self.system:
-                ret = self.system + self.sep
-            else:
-                ret = ""
-
+            ret = self.system + self.sep if self.system else ""
             for i, (role, message) in enumerate(self.messages):
                 if i % 2 == 0:
                     ret += f"[Round {i//2 + round_add_n}]{self.sep}"
 
-                if message:
-                    ret += f"{role}：{message}{self.sep}"
-                else:
-                    ret += f"{role}："
+                ret += f"{role}：{message}{self.sep}" if message else f"{role}："
             return ret
         elif self.sep_style == SeparatorStyle.CHATML:
             ret = "" if self.system == "" else self.system + self.sep + "\n"
             for role, message in self.messages:
-                if message:
-                    ret += role + "\n" + message + self.sep + "\n"
-                else:
-                    ret += role + "\n"
+                ret += role + "\n" + message + self.sep + "\n" if message else role + "\n"
             return ret
         elif self.sep_style == SeparatorStyle.CHATINTERN:
             # source: https://huggingface.co/internlm/internlm-chat-7b-8k/blob/bd546fa984b4b0b86958f56bf37f94aa75ab8831/modeling_internlm.py#L771
@@ -164,10 +129,7 @@ class Conversation:
             for i, (role, message) in enumerate(self.messages):
                 if i % 2 == 0:
                     ret += "<s>"
-                if message:
-                    ret += role + ":" + message + seps[i % 2] + "\n"
-                else:
-                    ret += role + ":"
+                ret += f"{role}:{message}{seps[i % 2]}" + "\n" if message else f"{role}:"
             return ret
         elif self.sep_style == SeparatorStyle.DOLLY:
             seps = [self.sep, self.sep2]
@@ -183,18 +145,12 @@ class Conversation:
         elif self.sep_style == SeparatorStyle.PHOENIX:
             ret = self.system
             for role, message in self.messages:
-                if message:
-                    ret += role + ": " + "<s>" + message + "</s>"
-                else:
-                    ret += role + ": " + "<s>"
+                ret += f"{role}: <s>{message}</s>" if message else f"{role}: <s>"
             return ret
         elif self.sep_style == SeparatorStyle.ROBIN:
             ret = self.system + self.sep
             for role, message in self.messages:
-                if message:
-                    ret += role + ":\n" + message + self.sep
-                else:
-                    ret += role + ":\n"
+                ret += role + ":\n" + message + self.sep if message else role + ":\n"
             return ret
         else:
             raise ValueError(f"Invalid style: {self.sep_style}")
@@ -235,9 +191,8 @@ class Conversation:
         for i, (_, msg) in enumerate(self.messages[self.offset :]):
             if i % 2 == 0:
                 ret.append({"role": "user", "content": msg})
-            else:
-                if msg is not None:
-                    ret.append({"role": "assistant", "content": msg})
+            elif msg is not None:
+                ret.append({"role": "assistant", "content": msg})
         return ret
 
     def copy(self):

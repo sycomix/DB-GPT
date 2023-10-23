@@ -15,7 +15,7 @@ copyright = "2023, csunny"
 author = "csunny"
 
 version = "👏👏 0.3.2"
-html_title = project + " " + version
+html_title = f"{project} {version}"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

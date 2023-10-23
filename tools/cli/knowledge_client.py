@@ -28,15 +28,14 @@ class ApiClient:
         self.api_address = api_address
 
     def _handle_response(self, response):
-        if 200 <= response.status_code <= 300:
-            result = Result(**response.json())
-            if not result.success:
-                raise Exception(result.err_msg)
-            return result.data
-        else:
+        if not 200 <= response.status_code <= 300:
             raise Exception(
                 f"Http request error, code: {response.status_code}, message: {response.text}"
             )
+        result = Result(**response.json())
+        if not result.success:
+            raise Exception(result.err_msg)
+        return result.data
 
     def _post(self, url: str, data=None):
         if not isinstance(data, dict):

@@ -64,7 +64,7 @@ def generate(query):
                 else:
                     output = data["text"].strip()
 
-                state.messages[-1][-1] = output + "▌"
+                state.messages[-1][-1] = f"{output}▌"
                 yield (output)
 
 

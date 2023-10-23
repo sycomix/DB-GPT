@@ -29,8 +29,7 @@ class KnownLedgeBaseQA:
         docs = retriever.get_relevant_documents(query=query)
 
         context = [d.page_content for d in docs]
-        result = prompt.format(context="\n".join(context), question=query)
-        return result
+        return prompt.format(context="\n".join(context), question=query)
 
     @staticmethod
     def build_knowledge_prompt(query, docs, state):
@@ -52,7 +51,7 @@ class KnownLedgeBaseQA:
             result = prompt_template.format(context="\n".join(context), question=query)
             state.messages[-2][1] = result
             prompt = state.get_prompt()
-            print("new prompt length:" + str(len(prompt)))
+            print(f"new prompt length:{len(prompt)}")
 
         return prompt
 
@@ -67,5 +66,4 @@ class KnownLedgeBaseQA:
             db_profile_summary=db_profile_summary, db_input=query
         )
         state.messages[-2][1] = result
-        prompt = state.get_prompt()
-        return prompt
+        return state.get_prompt()

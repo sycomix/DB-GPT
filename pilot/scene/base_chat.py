@@ -43,7 +43,7 @@ from pilot.scene.base_message import (
 )
 from pilot.configs.config import Config
 
-logger = build_logger("BaseChat", LOGDIR + "BaseChat.log")
+logger = build_logger("BaseChat", f"{LOGDIR}BaseChat.log")
 headers = {"User-Agent": "dbgpt Client"}
 CFG = Config()
 
@@ -131,7 +131,7 @@ class BaseChat(ABC):
             # fix the error of "Object of type ModelMessage is not JSON serializable" when passing the payload to request.post
             llm_messages = list(map(lambda m: m.dict(), llm_messages))
 
-        payload = {
+        return {
             "model": self.llm_model,
             "prompt": self.generate_llm_text(),
             "messages": llm_messages,
@@ -140,7 +140,6 @@ class BaseChat(ABC):
             "stop": self.prompt_template.sep,
             "echo": self.llm_echo,
         }
-        return payload
 
     def stream_call(self):
         # TODO Retry when server connection error
@@ -151,21 +150,19 @@ class BaseChat(ABC):
         ai_response_text = ""
         try:
             if not CFG.NEW_SERVER_MODE:
-                response = requests.post(
+                return requests.post(
                     urljoin(CFG.MODEL_SERVER, "generate_stream"),
                     headers=headers,
                     json=payload,
                     stream=True,
                     timeout=120,
                 )
-                return response
-            else:
-                from pilot.server.llmserver import worker
+            from pilot.server.llmserver import worker
 
-                return worker.generate_stream_gate(payload)
+            return worker.generate_stream_gate(payload)
         except Exception as e:
             print(traceback.format_exc())
-            logger.error("model response parase faild！" + str(e))
+            logger.error(f"model response parase faild！{str(e)}")
             self.current_message.add_view_message(
                 f"""<span style=\"color:red\">ERROR!</span>{str(e)}\n  {ai_response_text} """
             )
@@ -212,18 +209,19 @@ class BaseChat(ABC):
             result = self.do_action(prompt_define_response)
 
             if hasattr(prompt_define_response, "thoughts"):
-                if isinstance(prompt_define_response.thoughts, dict):
-                    if "speak" in prompt_define_response.thoughts:
-                        speak_to_user = prompt_define_response.thoughts.get("speak")
-                    else:
-                        speak_to_user = str(prompt_define_response.thoughts)
+                if (
+                    isinstance(prompt_define_response.thoughts, dict)
+                    and "speak" in prompt_define_response.thoughts
+                    or not isinstance(prompt_define_response.thoughts, dict)
+                    and hasattr(prompt_define_response.thoughts, "speak")
+                ):
+                    speak_to_user = prompt_define_response.thoughts.get("speak")
+                elif isinstance(prompt_define_response.thoughts, dict):
+                    speak_to_user = str(prompt_define_response.thoughts)
+                elif hasattr(prompt_define_response.thoughts, "reasoning"):
+                    speak_to_user = prompt_define_response.thoughts.get("reasoning")
                 else:
-                    if hasattr(prompt_define_response.thoughts, "speak"):
-                        speak_to_user = prompt_define_response.thoughts.get("speak")
-                    elif hasattr(prompt_define_response.thoughts, "reasoning"):
-                        speak_to_user = prompt_define_response.thoughts.get("reasoning")
-                    else:
-                        speak_to_user = prompt_define_response.thoughts
+                    speak_to_user = prompt_define_response.thoughts
             else:
                 speak_to_user = prompt_define_response
             view_message = self.prompt_template.output_parser.parse_view_response(
@@ -232,7 +230,7 @@ class BaseChat(ABC):
             self.current_message.add_view_message(view_message)
         except Exception as e:
             print(traceback.format_exc())
-            logger.error("model response parase faild！" + str(e))
+            logger.error(f"model response parase faild！{str(e)}")
             self.current_message.add_view_message(
                 f"""<span style=\"color:red\">ERROR!</span>{str(e)}\n  {ai_response_text} """
             )
@@ -296,54 +294,41 @@ class BaseChat(ABC):
         system_text = ""
         system_messages = []
         for system_conv in system_convs:
-            system_text += (
-                system_conv.type + ":" + system_conv.content + self.prompt_template.sep
-            )
+            system_text += f"{system_conv.type}:{system_conv.content}{self.prompt_template.sep}"
             system_messages.append(
                 ModelMessage(role=system_conv.type, content=system_conv.content)
             )
         return system_text if str_message else system_messages
 
     def __load_user_message(self, str_message: bool = True):
-        user_conv = self.current_message.get_user_conv()
-        user_messages = []
-        if user_conv:
-            user_text = (
-                user_conv.type + ":" + user_conv.content + self.prompt_template.sep
-            )
-            user_messages.append(
-                ModelMessage(role=user_conv.type, content=user_conv.content)
-            )
+        if user_conv := self.current_message.get_user_conv():
+            user_text = f"{user_conv.type}:{user_conv.content}{self.prompt_template.sep}"
+            user_messages = [ModelMessage(role=user_conv.type, content=user_conv.content)]
             return user_text if str_message else user_messages
         else:
             raise ValueError("Hi! What do you want to talk about？")
 
     def __load_example_messages(self, str_message: bool = True):
-        example_text = ""
         example_messages = []
+        example_text = ""
         if self.prompt_template.example_selector:
             for round_conv in self.prompt_template.example_selector.examples():
                 for round_message in round_conv["messages"]:
-                    if not round_message["type"] in [
+                    if round_message["type"] not in [
                         SystemMessage.type,
                         ViewMessage.type,
                     ]:
                         message_type = round_message["type"]
                         message_content = round_message["data"]["content"]
-                        example_text += (
-                            message_type
-                            + ":"
-                            + message_content
-                            + self.prompt_template.sep
-                        )
+                        example_text += f"{message_type}:{message_content}{self.prompt_template.sep}"
                         example_messages.append(
                             ModelMessage(role=message_type, content=message_content)
                         )
         return example_text if str_message else example_messages
 
     def __load_histroy_messages(self, str_message: bool = True):
-        history_text = ""
         history_messages = []
+        history_text = ""
         if self.prompt_template.need_historical_messages:
             if self.history_message:
                 logger.info(
@@ -351,18 +336,13 @@ class BaseChat(ABC):
                 )
             if len(self.history_message) > self.chat_retention_rounds:
                 for first_message in self.history_message[0]["messages"]:
-                    if not first_message["type"] in [
+                    if first_message["type"] not in [
                         ViewMessage.type,
                         SystemMessage.type,
                     ]:
                         message_type = first_message["type"]
                         message_content = first_message["data"]["content"]
-                        history_text += (
-                            message_type
-                            + ":"
-                            + message_content
-                            + self.prompt_template.sep
-                        )
+                        history_text += f"{message_type}:{message_content}{self.prompt_template.sep}"
                         history_messages.append(
                             ModelMessage(role=message_type, content=message_content)
                         )
@@ -370,18 +350,13 @@ class BaseChat(ABC):
                 index = self.chat_retention_rounds - 1
                 for round_conv in self.history_message[-index:]:
                     for round_message in round_conv["messages"]:
-                        if not round_message["type"] in [
+                        if round_message["type"] not in [
                             SystemMessage.type,
                             ViewMessage.type,
                         ]:
                             message_type = round_message["type"]
                             message_content = round_message["data"]["content"]
-                            history_text += (
-                                message_type
-                                + ":"
-                                + message_content
-                                + self.prompt_template.sep
-                            )
+                            history_text += f"{message_type}:{message_content}{self.prompt_template.sep}"
                             history_messages.append(
                                 ModelMessage(role=message_type, content=message_content)
                             )
@@ -391,18 +366,13 @@ class BaseChat(ABC):
                 for conversation in self.history_message:
                     for message in conversation["messages"]:
                         ### histroy message not have promot and view info
-                        if not message["type"] in [
+                        if message["type"] not in [
                             SystemMessage.type,
                             ViewMessage.type,
                         ]:
                             message_type = message["type"]
                             message_content = message["data"]["content"]
-                            history_text += (
-                                message_type
-                                + ":"
-                                + message_content
-                                + self.prompt_template.sep
-                            )
+                            history_text += f"{message_type}:{message_content}{self.prompt_template.sep}"
                             history_messages.append(
                                 ModelMessage(role=message_type, content=message_content)
                             )
@@ -410,10 +380,14 @@ class BaseChat(ABC):
         return history_text if str_message else history_messages
 
     def current_ai_response(self) -> str:
-        for message in self.current_message.messages:
-            if message.type == "view":
-                return message.content
-        return None
+        return next(
+            (
+                message.content
+                for message in self.current_message.messages
+                if message.type == "view"
+            ),
+            None,
+        )
 
     def generate(self, p) -> str:
         """

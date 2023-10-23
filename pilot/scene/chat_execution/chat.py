@@ -53,14 +53,13 @@ class ChatWithPlugin(BaseChat):
                 )
 
     def generate_input_values(self):
-        input_values = {
+        return {
             "input": self.current_user_input,
             "constraints": self.__list_to_prompt_str(
                 list(self.plugins_prompt_generator.constraints)
             ),
             "commands_infos": self.plugins_prompt_generator.generate_commands_string(),
         }
-        return input_values
 
     def do_action(self, prompt_response):
         print(f"do_action:{prompt_response}")

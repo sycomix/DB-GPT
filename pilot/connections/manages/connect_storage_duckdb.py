@@ -3,7 +3,9 @@ import duckdb
 from typing import List
 
 default_db_path = os.path.join(os.getcwd(), "message")
-duckdb_path = os.getenv("DB_DUCKDB_PATH", default_db_path + "/connect_config.db")
+duckdb_path = os.getenv(
+    "DB_DUCKDB_PATH", f"{default_db_path}/connect_config.db"
+)
 table_name = "connect_config"
 
 
@@ -45,15 +47,14 @@ class DuckdbConnectConfig:
             cursor.commit()
             self.connect.commit()
         except Exception as e:
-            print("add db connect info error1！" + str(e))
+            print(f"add db connect info error1！{str(e)}")
 
     def get_file_db_name(self, path):
         try:
             conn = duckdb.connect(path)
-            result = conn.execute("SELECT current_database()").fetchone()[0]
-            return result
+            return conn.execute("SELECT current_database()").fetchone()[0]
         except Exception as e:
-            raise "Unusable duckdb database path:" + path
+            raise f"Unusable duckdb database path:{path}"
 
     def add_file_db(self, db_name, db_type, db_path: str, comment: str = ""):
         try:
@@ -65,7 +66,7 @@ class DuckdbConnectConfig:
             cursor.commit()
             self.connect.commit()
         except Exception as e:
-            print("add db connect info error2！" + str(e))
+            print(f"add db connect info error2！{str(e)}")
 
     def delete_db(self, db_name):
         cursor = self.connect.cursor()
@@ -74,45 +75,36 @@ class DuckdbConnectConfig:
         return True
 
     def get_db_config(self, db_name):
-        if os.path.isfile(duckdb_path):
-            cursor = duckdb.connect(duckdb_path).cursor()
-            if db_name:
-                cursor.execute(
-                    "SELECT * FROM connect_config where db_name=? ", [db_name]
-                )
-            else:
-                raise ValueError("Cannot get database by name" + db_name)
+        if not os.path.isfile(duckdb_path):
+            return {}
+        cursor = duckdb.connect(duckdb_path).cursor()
+        if db_name:
+            cursor.execute(
+                "SELECT * FROM connect_config where db_name=? ", [db_name]
+            )
+        else:
+            raise ValueError(f"Cannot get database by name{db_name}")
 
-            fields = [field[0] for field in cursor.description]
-            row_dict = {}
-            row_1 = list(cursor.fetchall()[0])
-            for i, field in enumerate(fields):
-                row_dict[field] = row_1[i]
-            return row_dict
-        return {}
+        fields = [field[0] for field in cursor.description]
+        row_1 = list(cursor.fetchall()[0])
+        return {field: row_1[i] for i, field in enumerate(fields)}
 
     def get_db_list(self):
-        if os.path.isfile(duckdb_path):
-            cursor = duckdb.connect(duckdb_path).cursor()
-            cursor.execute("SELECT db_name, db_type, comment FROM connect_config ")
+        if not os.path.isfile(duckdb_path):
+            return []
+        cursor = duckdb.connect(duckdb_path).cursor()
+        cursor.execute("SELECT db_name, db_type, comment FROM connect_config ")
 
-            fields = [field[0] for field in cursor.description]
-            data = []
-            for row in cursor.fetchall():
-                row_dict = {}
-                for i, field in enumerate(fields):
-                    row_dict[field] = row[i]
-                data.append(row_dict)
-            return data
-
-        return []
+        fields = [field[0] for field in cursor.description]
+        data = []
+        for row in cursor.fetchall():
+            row_dict = {field: row[i] for i, field in enumerate(fields)}
+            data.append(row_dict)
+        return data
 
     def get_db_names(self):
         if os.path.isfile(duckdb_path):
             cursor = duckdb.connect(duckdb_path).cursor()
             cursor.execute("SELECT db_name FROM connect_config ")
-            data = []
-            for row in cursor.fetchall():
-                data.append(row[0])
-            return data
+            return [row[0] for row in cursor.fetchall()]
         return []

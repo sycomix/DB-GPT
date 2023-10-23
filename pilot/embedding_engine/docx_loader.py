@@ -15,14 +15,14 @@ class DocxLoader(BaseLoader):
 
     def load(self) -> List[Document]:
         """Load from file path."""
-        docs = []
         doc = docx.Document(self.file_path)
         content = []
         for i in range(len(doc.paragraphs)):
             para = doc.paragraphs[i]
             text = para.text
             content.append(text)
-        docs.append(
-            Document(page_content="".join(content), metadata={"source": self.file_path})
-        )
-        return docs
+        return [
+            Document(
+                page_content="".join(content), metadata={"source": self.file_path}
+            )
+        ]

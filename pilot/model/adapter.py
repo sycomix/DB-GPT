@@ -128,7 +128,6 @@ class ChatGLMAdapater(BaseLLMAdaper):
             model = AutoModel.from_pretrained(
                 model_path, trust_remote_code=True, **from_pretrained_kwargs
             ).float()
-            return model, tokenizer
         else:
             model = (
                 AutoModel.from_pretrained(
@@ -146,7 +145,8 @@ class ChatGLMAdapater(BaseLLMAdaper):
 
             model = dispatch_model(model, device_map=device_map)
 
-            return model, tokenizer
+
+        return model, tokenizer
 
 
 class GuanacoAdapter(BaseLLMAdaper):

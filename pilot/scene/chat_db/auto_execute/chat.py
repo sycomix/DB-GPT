@@ -48,16 +48,15 @@ class ChatWithDbAutoExecute(BaseChat):
                 dbname=self.db_name, query=self.current_user_input, topk=self.top_k
             )
         except Exception as e:
-            print("db summary find error!" + str(e))
+            print(f"db summary find error!{str(e)}")
             table_infos = self.database.table_simple_info()
 
-        input_values = {
+        return {
             "input": self.current_user_input,
             "top_k": str(self.top_k),
             "dialect": self.database.dialect,
             "table_info": table_infos,
         }
-        return input_values
 
     def do_action(self, prompt_response):
         print(f"do_action:{prompt_response}")

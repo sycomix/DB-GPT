@@ -34,5 +34,5 @@ class ClickHouseConnector(RDBMSDatabase):
     def from_uri_db(
         cls, db_path: str, engine_args: Optional[dict] = None, **kwargs: Any
     ) -> RDBMSDatabase:
-        db_url: str = cls.connect_driver + "://" + db_path
+        db_url: str = f"{cls.connect_driver}://{db_path}"
         return cls.from_uri(db_url, engine_args, **kwargs)

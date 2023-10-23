@@ -18,11 +18,11 @@ class PPTLoader(BaseLoader):
         pr = Presentation(self.file_path)
         docs = []
         for slide in pr.slides:
-            for shape in slide.shapes:
-                if hasattr(shape, "text") and shape.text is not "":
-                    docs.append(
-                        Document(
-                            page_content=shape.text, metadata={"source": slide.slide_id}
-                        )
-                    )
+            docs.extend(
+                Document(
+                    page_content=shape.text, metadata={"source": slide.slide_id}
+                )
+                for shape in slide.shapes
+                if hasattr(shape, "text") and shape.text is not ""
+            )
         return docs

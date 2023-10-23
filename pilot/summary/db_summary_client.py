@@ -31,13 +31,13 @@ class DBSummaryClient:
         if DBType.Mysql.value() == db_type:
             db_summary_client = MysqlSummary(dbname)
         else:
-            raise ValueError("Unsupport summary DbType！" + db_type)
+            raise ValueError(f"Unsupport summary DbType！{db_type}")
 
         embeddings = HuggingFaceEmbeddings(
             model_name=LLM_MODEL_CONFIG[CFG.EMBEDDING_MODEL]
         )
         vector_store_config = {
-            "vector_store_name": dbname + "_summary",
+            "vector_store_name": f"{dbname}_summary",
             "vector_store_type": CFG.VECTOR_STORE_TYPE,
             "chroma_persist_path": KNOWLEDGE_UPLOAD_ROOT_PATH,
             "embeddings": embeddings,
@@ -66,7 +66,7 @@ class DBSummaryClient:
                 table_summary,
             ) in db_summary_client.get_table_summary().items():
                 table_vector_store_config = {
-                    "vector_store_name": dbname + "_" + table_name + "_ts",
+                    "vector_store_name": f"{dbname}_{table_name}_ts",
                     "vector_store_type": CFG.VECTOR_STORE_TYPE,
                     "chroma_persist_path": KNOWLEDGE_UPLOAD_ROOT_PATH,
                     "embeddings": embeddings,
@@ -81,7 +81,7 @@ class DBSummaryClient:
 
     def get_db_summary(self, dbname, query, topk):
         vector_store_config = {
-            "vector_store_name": dbname + "_profile",
+            "vector_store_name": f"{dbname}_profile",
             "vector_store_type": CFG.VECTOR_STORE_TYPE,
             "chroma_persist_path": KNOWLEDGE_UPLOAD_ROOT_PATH,
         }
@@ -90,13 +90,12 @@ class DBSummaryClient:
             vector_store_config=vector_store_config,
         )
         table_docs = knowledge_embedding_client.similar_search(query, topk)
-        ans = [d.page_content for d in table_docs]
-        return ans
+        return [d.page_content for d in table_docs]
 
     def get_similar_tables(self, dbname, query, topk):
         """get user query related tables info"""
         vector_store_config = {
-            "vector_store_name": dbname + "_summary",
+            "vector_store_name": f"{dbname}_summary",
             "chroma_persist_path": KNOWLEDGE_UPLOAD_ROOT_PATH,
             "vector_store_type": CFG.VECTOR_STORE_TYPE,
             "chroma_persist_path": KNOWLEDGE_UPLOAD_ROOT_PATH,
@@ -122,7 +121,7 @@ class DBSummaryClient:
         related_table_summaries = []
         for table in related_tables:
             vector_store_config = {
-                "vector_store_name": dbname + "_" + table + "_ts",
+                "vector_store_name": f"{dbname}_{table}_ts",
                 "chroma_persist_path": KNOWLEDGE_UPLOAD_ROOT_PATH,
                 "vector_store_type": CFG.VECTOR_STORE_TYPE,
                 "chroma_persist_path": KNOWLEDGE_UPLOAD_ROOT_PATH,
@@ -143,7 +142,7 @@ class DBSummaryClient:
 
     def init_db_profile(self, db_summary_client, dbname, embeddings):
         profile_store_config = {
-            "vector_store_name": dbname + "_profile",
+            "vector_store_name": f"{dbname}_profile",
             "chroma_persist_path": KNOWLEDGE_UPLOAD_ROOT_PATH,
             "vector_store_type": CFG.VECTOR_STORE_TYPE,
             "embeddings": embeddings,

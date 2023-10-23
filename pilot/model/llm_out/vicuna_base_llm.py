@@ -24,8 +24,6 @@ def generate_stream(
     for i in range(max_new_tokens):
         if i == 0:
             out = model(torch.as_tensor([input_ids], device=device), use_cache=True)
-            logits = out.logits
-            past_key_values = out.past_key_values
         else:
             attention_mask = torch.ones(
                 1, past_key_values[0][0].shape[-2] + 1, device=device
@@ -36,9 +34,8 @@ def generate_stream(
                 attention_mask=attention_mask,
                 past_key_values=past_key_values,
             )
-            logits = out.logits
-            past_key_values = out.past_key_values
-
+        past_key_values = out.past_key_values
+        logits = out.logits
         last_token_logits = logits[0][-1]
 
         if device == "mps":
@@ -53,11 +50,7 @@ def generate_stream(
 
         output_ids.append(token)
 
-        if token == tokenizer.eos_token_id:
-            stopped = True
-        else:
-            stopped = False
-
+        stopped = token == tokenizer.eos_token_id
         if i % stream_interval == 0 or i == max_new_tokens - 1 or stopped:
             output = tokenizer.decode(output_ids, skip_special_tokens=True)
             pos = output.rfind(stop_str, l_prompt)
@@ -93,8 +86,6 @@ def generate_output(
     for i in range(max_new_tokens):
         if i == 0:
             out = model(torch.as_tensor([input_ids], device=device), use_cache=True)
-            logits = out.logits
-            past_key_values = out.past_key_values
         else:
             attention_mask = torch.ones(
                 1, past_key_values[0][0].shape[-2] + 1, device=device
@@ -105,9 +96,8 @@ def generate_output(
                 attention_mask=attention_mask,
                 past_key_values=past_key_values,
             )
-            logits = out.logits
-            past_key_values = out.past_key_values
-
+        past_key_values = out.past_key_values
+        logits = out.logits
         last_token_logits = logits[0][-1]
 
         if device == "mps":
@@ -122,11 +112,7 @@ def generate_output(
 
         output_ids.append(token)
 
-        if token == tokenizer.eos_token_id:
-            stopped = True
-        else:
-            stopped = False
-
+        stopped = token == tokenizer.eos_token_id
         if i % stream_interval == 0 or i == max_new_tokens - 1 or stopped:
             output = tokenizer.decode(output_ids, skip_special_tokens=True)
             pos = output.rfind(stop_str, l_prompt)
@@ -135,8 +121,6 @@ def generate_output(
                 stopped = True
             return output
 
-        if stopped:
-            break
     del past_key_values
 
 
@@ -156,9 +140,7 @@ def generate_output_ex(
         stop_strings.append(stop_parameter)
     elif isinstance(stop_parameter, list):
         stop_strings = stop_parameter
-    elif stop_parameter is None:
-        pass
-    else:
+    elif stop_parameter is not None:
         raise TypeError("Stop parameter must be string or list of strings.")
 
     input_ids = tokenizer(prompt).input_ids
@@ -171,17 +153,14 @@ def generate_output_ex(
     for i in range(max_new_tokens):
         if i == 0:
             out = model(torch.as_tensor([input_ids], device=device), use_cache=True)
-            logits = out.logits
-            past_key_values = out.past_key_values
         else:
             out = model(
                 input_ids=torch.as_tensor([[token]], device=device),
                 use_cache=True,
                 past_key_values=past_key_values,
             )
-            logits = out.logits
-            past_key_values = out.past_key_values
-
+        past_key_values = out.past_key_values
+        logits = out.logits
         last_token_logits = logits[0][-1]
 
         if temperature < 1e-4:
@@ -192,11 +171,7 @@ def generate_output_ex(
 
         output_ids.append(token)
 
-        if token == tokenizer.eos_token_id:
-            stopped = True
-        else:
-            stopped = False
-
+        stopped = token == tokenizer.eos_token_id
         output = tokenizer.decode(output_ids, skip_special_tokens=True)
         # print("Partial output:", output)
         for stop_str in stop_strings:
@@ -209,17 +184,11 @@ def generate_output_ex(
                 stopped = True
                 stop_word = stop_str
                 break
-            else:
-                pass
-                # print("Not found")
-
         if stopped:
             break
 
     del past_key_values
-    if pos != -1:
-        return output[:pos]
-    return output
+    return output[:pos] if pos != -1 else output
 
 
 @torch.inference_mode()

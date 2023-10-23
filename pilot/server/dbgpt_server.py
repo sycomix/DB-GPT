@@ -34,7 +34,7 @@ static_file_path = os.path.join(os.getcwd(), "server/static")
 
 
 CFG = Config()
-logger = build_logger("webserver", LOGDIR + "webserver.log")
+logger = build_logger("webserver", f"{LOGDIR}webserver.log")
 
 
 def signal_handler():
@@ -72,7 +72,9 @@ app.include_router(knowledge_router, prefix="/api")
 app.include_router(api_v1)
 app.include_router(knowledge_router)
 
-app.mount("/_next/static", StaticFiles(directory=static_file_path + "/_next/static"))
+app.mount(
+    "/_next/static", StaticFiles(directory=f"{static_file_path}/_next/static")
+)
 app.mount("/", StaticFiles(directory=static_file_path, html=True), name="static")
 # app.mount("/chat", StaticFiles(directory=static_file_path + "/chat.html", html=True), name="chat")
 

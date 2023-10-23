@@ -42,7 +42,7 @@ from pilot.scene.message import OnceConversation
 router = APIRouter()
 CFG = Config()
 CHAT_FACTORY = ChatFactory()
-logger = build_logger("api_v1", LOGDIR + "api_v1.log")
+logger = build_logger("api_v1", f"{LOGDIR}api_v1.log")
 knowledge_service = KnowledgeService()
 
 model_semaphore = None
@@ -51,18 +51,23 @@ static_file_path = os.path.join(os.getcwd(), "server/static")
 
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    message = ""
-    for error in exc.errors():
-        message += ".".join(error.get("loc")) + ":" + error.get("msg") + ";"
+    message = "".join(
+        ".".join(error.get("loc")) + ":" + error.get("msg") + ";"
+        for error in exc.errors()
+    )
     return Result.faild(code="E0001", msg=message)
 
 
 def __get_conv_user_message(conversations: dict):
     messages = conversations["messages"]
-    for item in messages:
-        if item["type"] == "human":
-            return item["data"]["content"]
-    return ""
+    return next(
+        (
+            item["data"]["content"]
+            for item in messages
+            if item["type"] == "human"
+        ),
+        "",
+    )
 
 
 def __new_conversation(chat_mode, user_id) -> ConversationVo:
@@ -73,26 +78,23 @@ def __new_conversation(chat_mode, user_id) -> ConversationVo:
 
 def get_db_list():
     dbs = CFG.LOCAL_DB_MANAGE.get_db_list()
-    params: dict = {}
-    for item in dbs:
-        params.update({item["db_name"]: item["db_name"]})
+    params: dict = {item["db_name"]: item["db_name"] for item in dbs}
     return params
 
 
 def plugins_select_info():
-    plugins_infos: dict = {}
-    for plugin in CFG.plugins:
-        plugins_infos.update({f"【{plugin._name}】=>{plugin._description}": plugin._name})
+    plugins_infos: dict = {
+        f"【{plugin._name}】=>{plugin._description}": plugin._name
+        for plugin in CFG.plugins
+    }
     return plugins_infos
 
 
 def knowledge_list():
     """return knowledge space list"""
-    params: dict = {}
     request = KnowledgeSpaceRequest()
     spaces = knowledge_service.get_knowledge_space(request)
-    for space in spaces:
-        params.update({space.name: space.name})
+    params: dict = {space.name: space.name for space in spaces}
     return params
 
 
@@ -195,8 +197,7 @@ async def dialogue_history_messages(con_uid: str):
     message_vos: List[MessageVo] = []
 
     history_mem = DuckdbHistoryMemory(con_uid)
-    history_messages: List[OnceConversation] = history_mem.get_messages()
-    if history_messages:
+    if history_messages := history_mem.get_messages():
         for once in history_messages:
             once_message_vos = [
                 message2Vo(element, once["chat_order"]) for element in once["messages"]
@@ -222,7 +223,7 @@ async def chat_completions(dialogue: ConversationVo = Body()):
 
     if not ChatScene.is_valid_mode(dialogue.chat_mode):
         raise StopAsyncIteration(
-            Result.faild("Unsupported Chat Mode," + dialogue.chat_mode + "!")
+            Result.faild(f"Unsupported Chat Mode,{dialogue.chat_mode}!")
         )
 
     chat_param = {
@@ -231,17 +232,17 @@ async def chat_completions(dialogue: ConversationVo = Body()):
     }
 
     if ChatScene.ChatWithDbQA.value() == dialogue.chat_mode:
-        chat_param.update({"db_name": dialogue.select_param})
+        chat_param["db_name"] = dialogue.select_param
     elif ChatScene.ChatWithDbExecute.value() == dialogue.chat_mode:
-        chat_param.update({"db_name": dialogue.select_param})
+        chat_param["db_name"] = dialogue.select_param
     elif ChatScene.ChatDashboard.value() == dialogue.chat_mode:
-        chat_param.update({"db_name": dialogue.select_param})
+        chat_param["db_name"] = dialogue.select_param
         ## DEFAULT
-        chat_param.update({"report_name": "report"})
+        chat_param["report_name"] = "report"
     elif ChatScene.ChatExecution.value() == dialogue.chat_mode:
-        chat_param.update({"plugin_selector": dialogue.select_param})
+        chat_param["plugin_selector"] = dialogue.select_param
     elif ChatScene.ChatKnowledge.value() == dialogue.chat_mode:
-        chat_param.update({"knowledge_space": dialogue.select_param})
+        chat_param["knowledge_space"] = dialogue.select_param
 
     chat: BaseChat = CHAT_FACTORY.get_implementation(dialogue.chat_mode, **chat_param)
     background_tasks = BackgroundTasks()

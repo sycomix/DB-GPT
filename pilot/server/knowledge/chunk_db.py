@@ -80,8 +80,7 @@ class DocumentChunkDao:
         document_chunks = document_chunks.offset((page - 1) * page_size).limit(
             page_size
         )
-        result = document_chunks.all()
-        return result
+        return document_chunks.all()
 
     def get_document_chunks_count(self, query: DocumentChunkEntity):
         session = self.Session()

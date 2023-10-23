@@ -45,7 +45,7 @@ def space_add(request: KnowledgeSpaceRequest):
 
 @router.post("/knowledge/space/list")
 def space_list(request: KnowledgeSpaceRequest):
-    print(f"/space/list params:")
+    print("/space/list params:")
     try:
         return Result.succ(knowledge_space_service.get_knowledge_space(request))
     except Exception as e:
@@ -114,7 +114,7 @@ async def document_upload(
                     )
                 )
                 # return Result.succ([])
-        return Result.faild(code="E000X", msg=f"doc_file is None")
+        return Result.faild(code="E000X", msg="doc_file is None")
     except Exception as e:
         return Result.faild(code="E000X", msg=f"document add error {e}")
 

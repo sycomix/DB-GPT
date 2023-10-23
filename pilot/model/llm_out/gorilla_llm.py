@@ -21,28 +21,21 @@ def generate_stream(
     for i in range(max_new_tokens):
         if i == 0:
             out = model(torch.as_tensor([input_ids], device=device), use_cache=True)
-            logits = out.logits
-            past_key_values = out.past_key_values
         else:
             out = model(
                 input_ids=torch.as_tensor([[token]], device=device),
                 use_cache=True,
                 past_key_values=past_key_values,
             )
-            logits = out.logits
-            past_key_values = out.past_key_values
-
+        past_key_values = out.past_key_values
+        logits = out.logits
         last_token_logits = logits[0][-1]
 
         probs = torch.softmax(last_token_logits, dim=-1)
         token = int(torch.multinomial(probs, num_samples=1))
         output_ids.append(token)
 
-        if token == tokenizer.eos_token_id:
-            stopped = True
-        else:
-            stopped = False
-
+        stopped = token == tokenizer.eos_token_id
         if i % stream_interval == 0 or i == max_new_tokens - 1 or stopped:
             tmp_output_ids = output_ids[input_echo_len:]
             output = tokenizer.decode(

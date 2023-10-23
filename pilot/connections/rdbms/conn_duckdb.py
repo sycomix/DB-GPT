@@ -27,10 +27,10 @@ class DuckDbConnect(RDBMSDatabase):
     ) -> RDBMSDatabase:
         """Construct a SQLAlchemy engine from URI."""
         _engine_args = engine_args or {}
-        return cls(create_engine("duckdb:///" + file_path, **_engine_args), **kwargs)
+        return cls(create_engine(f"duckdb:///{file_path}", **_engine_args), **kwargs)
 
     def table_simple_info(self) -> Iterable[str]:
-        _tables_sql = f"""
+        _tables_sql = """
                 SELECT name FROM sqlite_master WHERE type='table'
             """
         cursor = self.session.execute(text(_tables_sql))
@@ -64,11 +64,11 @@ if __name__ == "__main__":
         .fetchall()
     )
 
-    print(str(results))
+    print(results)
 
     fields = []
-    results2 = engine.connect().execute(f"""PRAGMA  table_info(user)""").fetchall()
+    results2 = engine.connect().execute("""PRAGMA  table_info(user)""").fetchall()
     for row_col in results2:
         field_info = list(row_col)
         fields.append(field_info[1])
-    print(str(fields))
+    print(fields)

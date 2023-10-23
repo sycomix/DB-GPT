@@ -108,10 +108,7 @@ class MilvusStore(VectorStoreBase):
                     self.fields.remove(x.name)
                 if x.is_primary:
                     self.primary_field = x.name
-                if (
-                    x.dtype == DataType.FLOAT_VECTOR
-                    or x.dtype == DataType.BINARY_VECTOR
-                ):
+                if x.dtype in [DataType.FLOAT_VECTOR, DataType.BINARY_VECTOR]:
                     self.vector_field = x.name
             self._add_documents(texts, metadatas)
             return self.collection_name
@@ -127,14 +124,15 @@ class MilvusStore(VectorStoreBase):
         max_length = 0
         for y in texts:
             max_length = max(max_length, len(y))
-        # Create the text field
-        fields.append(FieldSchema(text_field, DataType.VARCHAR, max_length=65535))
-        # primary key field
-        fields.append(
-            FieldSchema(primary_field, DataType.INT64, is_primary=True, auto_id=True)
+        fields.extend(
+            (
+                FieldSchema(text_field, DataType.VARCHAR, max_length=65535),
+                FieldSchema(
+                    primary_field, DataType.INT64, is_primary=True, auto_id=True
+                ),
+                FieldSchema(vector_field, DataType.FLOAT_VECTOR, dim=dim),
+            )
         )
-        # vector field
-        fields.append(FieldSchema(vector_field, DataType.FLOAT_VECTOR, dim=dim))
         schema = CollectionSchema(fields)
         # Create the collection
         collection = Collection(collection_name, schema)
@@ -150,7 +148,7 @@ class MilvusStore(VectorStoreBase):
                 self.fields.remove(x.name)
             if x.is_primary:
                 self.primary_field = x.name
-            if x.dtype == DataType.FLOAT_VECTOR or x.dtype == DataType.BINARY_VECTOR:
+            if x.dtype in [DataType.FLOAT_VECTOR, DataType.BINARY_VECTOR]:
                 self.vector_field = x.name
         self._add_documents(texts, metadatas)
 
@@ -263,7 +261,7 @@ class MilvusStore(VectorStoreBase):
                 self.fields.remove(x.name)
             if x.is_primary:
                 self.primary_field = x.name
-            if x.dtype == DataType.FLOAT_VECTOR or x.dtype == DataType.BINARY_VECTOR:
+            if x.dtype in [DataType.FLOAT_VECTOR, DataType.BINARY_VECTOR]:
                 self.vector_field = x.name
         _, docs_and_scores = self._search(text, topk)
         return [doc for doc, _, _ in docs_and_scores]

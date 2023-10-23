@@ -42,18 +42,14 @@ class ModelWorker:
             num_gpus, load_8bit=ISLOAD_8BIT, debug=ISDEBUG
         )
 
-        if not isinstance(self.model, str):
-            if hasattr(self.model, "config") and hasattr(
-                self.model.config, "max_sequence_length"
-            ):
-                self.context_len = self.model.config.max_sequence_length
-            elif hasattr(self.model, "config") and hasattr(
-                self.model.config, "max_position_embeddings"
-            ):
-                self.context_len = self.model.config.max_position_embeddings
-
-        else:
+        if isinstance(self.model, str):
             self.context_len = 2048
+
+        elif hasattr(self.model, "config"):
+            if hasattr(self.model.config, "max_sequence_length"):
+                self.context_len = self.model.config.max_sequence_length
+            elif hasattr(self.model.config, "max_position_embeddings"):
+                self.context_len = self.model.config.max_position_embeddings
 
         self.llm_chat_adapter = get_llm_chat_adapter(model_path)
         self.generate_stream_func = self.llm_chat_adapter.get_generate_stream_func()

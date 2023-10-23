@@ -27,7 +27,7 @@ def chatglm_generate_stream(
     echo = params.get("echo", False)
 
     generate_kwargs = {
-        "do_sample": True if temperature > 1e-5 else False,
+        "do_sample": temperature > 1e-5,
         "top_p": top_p,
         "repetition_penalty": 1.0,
         "logits_processor": None,
@@ -52,14 +52,8 @@ def chatglm_generate_stream(
     print("Query Message: ", query)
     print("hist: ", hist)
 
-    for i, (response, new_hist) in enumerate(
-        model.stream_chat(tokenizer, query, hist, **generate_kwargs)
-    ):
-        if echo:
-            output = query + " " + response
-        else:
-            output = response
-
+    for response, new_hist in model.stream_chat(tokenizer, query, hist, **generate_kwargs):
+        output = f"{query} {response}" if echo else response
         yield output
 
     yield output
@@ -87,7 +81,7 @@ def build_history(hist: List[HistoryEntry]) -> List[List[str]]:
 
 
 def prompt_adaptation(system_messages_str: str, human_message: str) -> str:
-    if not system_messages_str or system_messages_str == "":
+    if not system_messages_str:
         return human_message
     # TODO Multi-model prompt adaptation
     adaptation_rules = [

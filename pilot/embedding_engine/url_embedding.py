@@ -52,12 +52,10 @@ class URLEmbedding(SourceEmbedding):
 
     @register
     def data_process(self, documents: List[Document]):
-        i = 0
-        for d in documents:
+        for i, d in enumerate(documents):
             content = d.page_content.replace("\n", "")
             soup = BeautifulSoup(content, "html.parser")
             for tag in soup(["!doctype", "meta"]):
                 tag.extract()
             documents[i].page_content = soup.get_text()
-            i += 1
         return documents

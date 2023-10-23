@@ -41,8 +41,7 @@ class VicunaLLM(LLM):
             if chunk:
                 data = json.loads(chunk.decode())
                 if data["error_code"] == 0:
-                    output = data["text"][skip_echo_len:].strip()
-                    yield output
+                    yield data["text"][skip_echo_len:].strip()
 
     @property
     def _llm_type(self) -> str:
@@ -89,5 +88,4 @@ class VicunaEmbeddingLLM(BaseModel, Embeddings):
         Returns:
             Embedding for the text
         """
-        embedding = self._call(text)
-        return embedding
+        return self._call(text)

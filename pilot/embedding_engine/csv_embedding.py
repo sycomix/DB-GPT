@@ -51,8 +51,6 @@ class CSVEmbedding(SourceEmbedding):
 
     @register
     def data_process(self, documents: List[Document]):
-        i = 0
-        for d in documents:
+        for i, d in enumerate(documents):
             documents[i].page_content = d.page_content.replace("\n", "")
-            i += 1
         return documents

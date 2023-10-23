@@ -19,10 +19,11 @@ def knownledge_tovec(filename):
 
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_text(knownledge)
-    docsearch = Chroma.from_texts(
-        texts, embeddings, metadatas=[{"source": str(i)} for i in range(len(texts))]
+    return Chroma.from_texts(
+        texts,
+        embeddings,
+        metadatas=[{"source": str(i)} for i in range(len(texts))],
     )
-    return docsearch
 
 
 def knownledge_tovec_st(filename):
@@ -41,10 +42,11 @@ def knownledge_tovec_st(filename):
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 
     texts = text_splitter.split_text(knownledge)
-    docsearch = Chroma.from_texts(
-        texts, embeddings, metadatas=[{"source": str(i)} for i in range(len(texts))]
+    return Chroma.from_texts(
+        texts,
+        embeddings,
+        metadatas=[{"source": str(i)} for i in range(len(texts))],
     )
-    return docsearch
 
 
 def load_knownledge_from_doc():
@@ -72,16 +74,13 @@ def load_knownledge_from_doc():
 
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_owerlap=0)
     texts = text_splitter.split_text(knownledge)
-    docsearch = Chroma.from_texts(
+    return Chroma.from_texts(
         texts,
         embeddings,
         metadatas=[{"source": str(i)} for i in range(len(texts))],
         persist_directory=os.path.join(VECTORE_PATH, ".vectore"),
     )
-    return docsearch
 
 
 def get_vector_storelist():
-    if not os.path.exists(VECTORE_PATH):
-        return []
-    return os.listdir(VECTORE_PATH)
+    return [] if not os.path.exists(VECTORE_PATH) else os.listdir(VECTORE_PATH)

@@ -37,7 +37,7 @@ def inspect_zip_for_modules(zip_path: str, debug: bool = False) -> list[str]:
             if name.endswith("__init__.py") and not name.startswith("__MACOSX"):
                 logger.debug(f"Found module '{name}' in the zipfile at: {name}")
                 result.append(name)
-    if len(result) == 0:
+    if not result:
         logger.debug(f"Module '__init__.py' not found in the zipfile @ {zip_path}.")
     return result
 
@@ -109,7 +109,7 @@ def load_native_plugins(cfg: Config):
             else:
                 print("get file faild，response code：", response.status_code)
         except Exception as e:
-            print("load plugin from git exception!" + str(e))
+            print(f"load plugin from git exception!{str(e)}")
 
     t = threading.Thread(target=load_from_git, args=(cfg,))
     t.start()

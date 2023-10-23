@@ -50,8 +50,7 @@ class DbChatOutputParser(BaseOutputParser):
             table_str = "".join(html_table.split())
             html = f"""<div class="w-full overflow-auto">{table_str}</div>"""
 
-        view_text = f"##### {str(speak)}" + "\n" + html.replace("\n", " ")
-        return view_text
+        return f"##### {str(speak)}" + "\n" + html.replace("\n", " ")
 
     @property
     def _type(self) -> str:

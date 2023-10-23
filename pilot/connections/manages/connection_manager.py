@@ -29,7 +29,7 @@ class ConnectManager:
             if cls.db_type == db_type:
                 result = cls
         if not result:
-            raise ValueError("Unsupport Db Type！" + db_type)
+            raise ValueError(f"Unsupport Db Type！{db_type}")
         return result
 
     def __init__(self):
@@ -85,9 +85,7 @@ class ConnectManager:
                         "",
                     )
         if CFG.LOCAL_DB_PATH:
-            # default file db is duckdb
-            db_name = self.storage.get_file_db_name(CFG.LOCAL_DB_PATH)
-            if db_name:
+            if db_name := self.storage.get_file_db_name(CFG.LOCAL_DB_PATH):
                 self.storage.add_file_db(
                     db_name, DBType.DuckDb.value(), CFG.LOCAL_DB_PATH
                 )

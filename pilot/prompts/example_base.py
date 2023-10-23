@@ -21,10 +21,7 @@ class ExampleSelector(BaseModel, ABC):
         Use 2 or more examples, default 2
         Returns: example text
         """
-        if self.use_example:
-            need_use = self.examples_record[:count]
-            return need_use
-        return None
+        return self.examples_record[:count] if self.use_example else None
 
     def __one_show_context(self) -> dict:
         """
@@ -32,8 +29,4 @@ class ExampleSelector(BaseModel, ABC):
         Returns:
 
         """
-        if self.use_example:
-            need_use = self.examples_record[:1]
-            return need_use
-
-        return None
+        return self.examples_record[:1] if self.use_example else None

@@ -28,13 +28,12 @@ class ChatDashboardOutputParser(BaseOutputParser):
         clean_str = super().parse_prompt_response(model_out_text)
         print("clean prompt response:", clean_str)
         response = json.loads(clean_str)
-        chart_items: List[ChartItem] = []
-        for item in response:
-            chart_items.append(
-                ChartItem(
-                    item["sql"], item["title"], item["thoughts"], item["showcase"]
-                )
+        chart_items: List[ChartItem] = [
+            ChartItem(
+                item["sql"], item["title"], item["thoughts"], item["showcase"]
             )
+            for item in response
+        ]
         return chart_items
 
     def parse_view_response(self, speak, data) -> str:

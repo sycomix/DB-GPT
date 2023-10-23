@@ -14,7 +14,7 @@ def chatgpt_generate_stream(model, tokenizer, params, device, context_len=2048):
     history = []
 
     headers = {
-        "Authorization": "Bearer " + CFG.proxy_api_key,
+        "Authorization": f"Bearer {CFG.proxy_api_key}",
         "Token": CFG.proxy_api_key,
     }
 
@@ -27,17 +27,11 @@ def chatgpt_generate_stream(model, tokenizer, params, device, context_len=2048):
             history.append({"role": "system", "content": message.content})
         elif message.role == ModelMessageRoleType.AI:
             history.append({"role": "assistant", "content": message.content})
-        else:
-            pass
-
     # Move the last user's information to the end
     temp_his = history[::-1]
-    last_user_input = None
-    for m in temp_his:
-        if m["role"] == "user":
-            last_user_input = m
-            break
-    if last_user_input:
+    if last_user_input := next(
+        (m for m in temp_his if m["role"] == "user"), None
+    ):
         history.remove(last_user_input)
         history.append(last_user_input)
 
@@ -57,8 +51,7 @@ def chatgpt_generate_stream(model, tokenizer, params, device, context_len=2048):
     for line in res.iter_lines():
         if line:
             if not line.startswith(b"data: "):
-                error_message = line.decode("utf-8")
-                yield error_message
+                yield line.decode("utf-8")
             else:
                 json_data = line.split(b": ", 1)[1]
                 decoded_line = json_data.decode("utf-8")

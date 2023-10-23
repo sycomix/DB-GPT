@@ -40,8 +40,7 @@ class PluginChatOutputParser(BaseOutputParser):
     def parse_view_response(self, speak, data) -> str:
         ### tool out data to table view
         print(f"parse_view_response:{speak},{str(data)}")
-        view_text = f"##### {speak}" + "\n" + str(data)
-        return view_text
+        return f"##### {speak}" + "\n" + str(data)
 
     def get_format_instructions(self) -> str:
         pass

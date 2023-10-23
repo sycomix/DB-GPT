@@ -57,13 +57,11 @@ class MarkdownEmbedding(SourceEmbedding):
 
     @register
     def data_process(self, documents: List[Document]):
-        i = 0
-        for d in documents:
+        for i, d in enumerate(documents):
             content = markdown.markdown(d.page_content)
             soup = BeautifulSoup(content, "html.parser")
             for tag in soup(["!doctype", "meta", "i.fa"]):
                 tag.extract()
             documents[i].page_content = soup.get_text()
             documents[i].page_content = documents[i].page_content.replace("\n", " ")
-            i += 1
         return documents

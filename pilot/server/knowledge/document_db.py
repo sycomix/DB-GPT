@@ -90,8 +90,7 @@ class KnowledgeDocumentDao:
         knowledge_documents = knowledge_documents.offset((page - 1) * page_size).limit(
             page_size
         )
-        result = knowledge_documents.all()
-        return result
+        return knowledge_documents.all()
 
     def get_knowledge_documents_count(self, query):
         session = self.Session()

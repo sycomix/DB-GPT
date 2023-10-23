@@ -21,7 +21,7 @@ from pilot.configs.model_config import LOGDIR
 from pilot.configs.config import Config
 
 T = TypeVar("T")
-logger = build_logger("webserver", LOGDIR + "DbChatOutputParser.log")
+logger = build_logger("webserver", f"{LOGDIR}DbChatOutputParser.log")
 
 CFG = Config()
 
@@ -78,10 +78,10 @@ class BaseOutputParser(ABC):
                 output = data["text"].strip()
 
             output = self.__post_process_code(output)
-            return output
         else:
             output = data["text"] + f" (error_code: {data['error_code']})"
-            return output
+
+        return output
 
     # TODO 后续和模型绑定
     def parse_model_stream_resp(self, response, skip_echo_len):
@@ -98,35 +98,34 @@ class BaseOutputParser(ABC):
                         output = data["text"].strip()
 
                     output = self.__post_process_code(output)
-                    yield output
                 else:
                     output = data["text"] + f" (error_code: {data['error_code']})"
-                    yield output
+
+                yield output
 
     def parse_model_nostream_resp(self, response, sep: str):
         resp_obj_ex = json.loads(response)
         if isinstance(resp_obj_ex, str):
             resp_obj_ex = json.loads(resp_obj_ex)
-        if resp_obj_ex["error_code"] == 0:
-            all_text = resp_obj_ex["text"]
-            ### 解析返回文本，获取AI回复部分
-            tmp_resp = all_text.split(sep)
-            last_index = -1
-            for i in range(len(tmp_resp)):
-                if tmp_resp[i].find("assistant:") != -1:
-                    last_index = i
-            ai_response = tmp_resp[last_index]
-            ai_response = ai_response.replace("assistant:", "")
-            ai_response = ai_response.replace("Assistant:", "")
-            ai_response = ai_response.replace("ASSISTANT:", "")
-            ai_response = ai_response.replace("\n", " ")
-            ai_response = ai_response.replace("\_", "_")
-            ai_response = ai_response.replace("\*", "*")
-            ai_response = ai_response.replace("\t", "")
-            print("un_stream ai response:", ai_response)
-            return ai_response
-        else:
+        if resp_obj_ex["error_code"] != 0:
             raise ValueError("Model server error!code=" + resp_obj_ex["error_code"])
+        all_text = resp_obj_ex["text"]
+        ### 解析返回文本，获取AI回复部分
+        tmp_resp = all_text.split(sep)
+        last_index = -1
+        for i in range(len(tmp_resp)):
+            if tmp_resp[i].find("assistant:") != -1:
+                last_index = i
+        ai_response = tmp_resp[last_index]
+        ai_response = ai_response.replace("assistant:", "")
+        ai_response = ai_response.replace("Assistant:", "")
+        ai_response = ai_response.replace("ASSISTANT:", "")
+        ai_response = ai_response.replace("\n", " ")
+        ai_response = ai_response.replace("\_", "_")
+        ai_response = ai_response.replace("\*", "*")
+        ai_response = ai_response.replace("\t", "")
+        print("un_stream ai response:", ai_response)
+        return ai_response
 
     def __illegal_json_ends(self, s):
         temp_json = s
@@ -146,7 +145,7 @@ class BaseOutputParser(ABC):
             temp_json = self.__illegal_json_ends(temp_json)
             return temp_json
         except Exception as e:
-            raise ValueError("Failed to find a valid json response！" + temp_json)
+            raise ValueError(f"Failed to find a valid json response！{temp_json}")
 
     def __json_interception(self, s, is_json_array: bool = False):
         if is_json_array:
@@ -161,8 +160,6 @@ class BaseOutputParser(ABC):
                     count += 1
                 if count == 0:
                     break
-            assert count == 0
-            return s[i : j + 1]
         else:
             i = s.find("{")
             if i < 0:
@@ -175,8 +172,9 @@ class BaseOutputParser(ABC):
                     count += 1
                 if count == 0:
                     break
-            assert count == 0
-            return s[i : j + 1]
+
+        assert count == 0
+        return s[i : j + 1]
 
     def parse_prompt_response(self, model_out_text) -> T:
         """

@@ -47,32 +47,33 @@ def get_knowledge_embedding(
         case KnowledgeType.DOCUMENT.value:
             extension = "." + knowledge_source.rsplit(".", 1)[-1]
             if extension in DocumentEmbeddingType:
-                knowledge_class, knowledge_args = DocumentEmbeddingType[extension]
-                embedding = knowledge_class(
+                knowledge_class, knowledge_args = DocumentEmbeddingType[
+                    extension
+                ]
+                return knowledge_class(
                     knowledge_source,
                     vector_store_config=vector_store_config,
                     source_reader=source_reader,
                     text_splitter=text_splitter,
                     **knowledge_args,
                 )
-                return embedding
-            raise ValueError(f"Unsupported knowledge document type '{extension}'")
+            raise ValueError(
+                f"Unsupported knowledge document type '{extension}'"
+            )
         case KnowledgeType.URL.value:
-            embedding = URLEmbedding(
+            return URLEmbedding(
                 file_path=knowledge_source,
                 vector_store_config=vector_store_config,
                 source_reader=source_reader,
                 text_splitter=text_splitter,
             )
-            return embedding
         case KnowledgeType.TEXT.value:
-            embedding = StringEmbedding(
+            return StringEmbedding(
                 file_path=knowledge_source,
                 vector_store_config=vector_store_config,
                 source_reader=source_reader,
                 text_splitter=text_splitter,
             )
-            return embedding
         case KnowledgeType.OSS.value:
             raise Exception("OSS have not integrate")
         case KnowledgeType.S3.value:

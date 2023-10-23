@@ -27,7 +27,7 @@ def retry_stream_api(
         backoff_base float: Base for exponential backoff. Defaults to 2.
         warn_user bool: Whether to warn the user. Defaults to True.
     """
-    retry_limit_msg = f"Error: Reached rate limit, passing..."
+    retry_limit_msg = "Error: Reached rate limit, passing..."
     backoff_msg = f"Error: API Bad gateway. Waiting {{backoff}} seconds..."
 
     def _wrapper(func):

@@ -70,17 +70,15 @@ class ChatDashboard(BaseChat):
             )
             print("dashboard vector find tables:{}", table_infos)
         except Exception as e:
-            print("db summary find error!" + str(e))
+            print(f"db summary find error!{str(e)}")
 
-        input_values = {
+        return {
             "input": self.current_user_input,
             "dialect": self.database.dialect,
             "table_info": self.database.table_simple_info(),
             "supported_chat_type": self.dashboard_template["supported_chart_type"]
             # "table_info": client.get_similar_tables(dbname=self.db_name, query=self.current_user_input, topk=self.top_k)
         }
-
-        return input_values
 
     def do_action(self, prompt_response):
         ### TODO 记录整体信息，处理成功的，和未成功的分开记录处理
@@ -93,22 +91,16 @@ class ChatDashboard(BaseChat):
                 values: List[ValueItem] = []
                 data_map = {}
                 field_map = {}
-                index = 0
-                for field_name in field_names:
-                    data_map.update({f"{field_name}": [row[index] for row in datas]})
-                    index += 1
-                    if not data_map[field_name]:
-                        field_map.update({f"{field_name}": False})
-                    else:
-                        field_map.update(
-                            {
-                                f"{field_name}": all(
-                                    isinstance(item, (int, float, Decimal))
-                                    for item in data_map[field_name]
-                                )
-                            }
+                for index, field_name in enumerate(field_names):
+                    data_map[f"{field_name}"] = [row[index] for row in datas]
+                    field_map[f"{field_name}"] = (
+                        False
+                        if not data_map[field_name]
+                        else all(
+                            isinstance(item, (int, float, Decimal))
+                            for item in data_map[field_name]
                         )
-
+                    )
                 for field_name in field_names[1:]:
                     if not field_map[field_name]:
                         print("more than 2 non-numeric column")
@@ -134,7 +126,7 @@ class ChatDashboard(BaseChat):
                 )
             except Exception as e:
                 # TODO 修复流程
-                print(str(e))
+                print(e)
 
         return ReportData(
             conv_uid=self.chat_session_id,

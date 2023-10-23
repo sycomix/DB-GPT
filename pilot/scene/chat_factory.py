@@ -22,6 +22,6 @@ class ChatFactory(metaclass=Singleton):
         for cls in chat_classes:
             if cls.chat_scene == chat_mode:
                 implementation = cls(**kwargs)
-        if implementation == None:
+        if implementation is None:
             raise Exception(f"Invalid implementation name:{chat_mode}")
         return implementation

@@ -139,9 +139,7 @@ class RDBMSDatabase(BaseConnect):
         return self.get_usable_table_names()
 
     def get_session(self):
-        session = self._db_sessions()
-
-        return session
+        return self._db_sessions()
 
     def get_current_db_name(self) -> str:
         return self.session.execute(text("SELECT DATABASE()")).scalar()
@@ -151,8 +149,7 @@ class RDBMSDatabase(BaseConnect):
                 select concat(table_name, "(" , group_concat(column_name), ")") as schema_info from information_schema.COLUMNS where table_schema="{self.get_current_db_name()}" group by TABLE_NAME;
             """
         cursor = self.session.execute(text(_sql))
-        results = cursor.fetchall()
-        return results
+        return cursor.fetchall()
 
     @property
     def table_info(self) -> str:
@@ -171,8 +168,7 @@ class RDBMSDatabase(BaseConnect):
         """
         all_table_names = self.get_usable_table_names()
         if table_names is not None:
-            missing_tables = set(table_names).difference(all_table_names)
-            if missing_tables:
+            if missing_tables := set(table_names).difference(all_table_names):
                 raise ValueError(f"table_names {missing_tables} not found in database")
             all_table_names = table_names
 
@@ -204,8 +200,7 @@ class RDBMSDatabase(BaseConnect):
             if has_extra_info:
                 table_info += "*/"
             tables.append(table_info)
-        final_str = "\n\n".join(tables)
-        return final_str
+        return "\n\n".join(tables)
 
     def _get_sample_rows(self, table: Table) -> str:
         # build the select command
@@ -282,7 +277,7 @@ class RDBMSDatabase(BaseConnect):
                 result = cursor.fetchone()[0]  # type: ignore
             else:
                 raise ValueError("Fetch parameter must be either 'one' or 'all'")
-            field_names = tuple(i[0:] for i in cursor.keys())
+            field_names = tuple(i[:] for i in cursor.keys())
 
             result = list(result)
             result.insert(0, field_names)
@@ -308,41 +303,39 @@ class RDBMSDatabase(BaseConnect):
                 result = cursor.fetchone()[0]  # type: ignore
             else:
                 raise ValueError("Fetch parameter must be either 'one' or 'all'")
-            field_names = list(i[0:] for i in cursor.keys())
+            field_names = [i[:] for i in cursor.keys()]
 
             result = list(result)
             return field_names, result
 
     def run(self, session, command: str, fetch: str = "all") -> List:
         """Execute a SQL command and return a string representing the results."""
-        print("SQL:" + command)
+        print(f"SQL:{command}")
         if not command:
             return []
         parsed, ttype, sql_type, table_name = self.__sql_parse(command)
         if ttype == sqlparse.tokens.DML:
             if sql_type == "SELECT":
                 return self.__query(session, command, fetch)
-            else:
-                self.__write(session, command)
-                select_sql = self.convert_sql_write_to_select(command)
-                print(f"write result query:{select_sql}")
-                return self.__query(session, select_sql)
+            self.__write(session, command)
+            select_sql = self.convert_sql_write_to_select(command)
+            print(f"write result query:{select_sql}")
+            return self.__query(session, select_sql)
 
         else:
-            print(f"DDL execution determines whether to enable through configuration ")
+            print("DDL execution determines whether to enable through configuration ")
             cursor = session.execute(text(command))
             session.commit()
-            if cursor.returns_rows:
-                result = cursor.fetchall()
-                field_names = tuple(i[0:] for i in cursor.keys())
-                result = list(result)
-                result.insert(0, field_names)
-                print("DDL Result:" + str(result))
-                if not result:
-                    return self.__query(session, f"SHOW COLUMNS FROM {table_name}")
-                return result
-            else:
+            if not cursor.returns_rows:
                 return self.__query(session, f"SHOW COLUMNS FROM {table_name}")
+            result = cursor.fetchall()
+            field_names = tuple(i[:] for i in cursor.keys())
+            result = list(result)
+            result.insert(0, field_names)
+            print(f"DDL Result:{result}")
+            if not result:
+                return self.__query(session, f"SHOW COLUMNS FROM {table_name}")
+            return result
 
     def run_no_throw(self, session, command: str, fetch: str = "all") -> List:
         """Execute a SQL command and return a string representing the results.
@@ -385,10 +378,9 @@ class RDBMSDatabase(BaseConnect):
 
         # 根据命令类型进行处理
         if cmd_type == "insert":
-            match = re.match(
+            if match := re.match(
                 r"insert into (\w+) \((.*?)\) values \((.*?)\)", write_sql.lower()
-            )
-            if match:
+            ):
                 table_name, columns, values = match.groups()
                 # 将字段列表和值列表分割为单独的字段和值
                 columns = columns.split(",")
@@ -461,27 +453,24 @@ class RDBMSDatabase(BaseConnect):
     def get_charset(self):
         """Get character_set."""
         session = self._db_sessions()
-        cursor = session.execute(text(f"SELECT @@character_set_database"))
-        character_set = cursor.fetchone()[0]
-        return character_set
+        cursor = session.execute(text("SELECT @@character_set_database"))
+        return cursor.fetchone()[0]
 
     def get_collation(self):
         """Get collation."""
         session = self._db_sessions()
-        cursor = session.execute(text(f"SELECT @@collation_database"))
-        collation = cursor.fetchone()[0]
-        return collation
+        cursor = session.execute(text("SELECT @@collation_database"))
+        return cursor.fetchone()[0]
 
     def get_grants(self):
         """Get grant info."""
         session = self._db_sessions()
-        cursor = session.execute(text(f"SHOW GRANTS"))
-        grants = cursor.fetchall()
-        return grants
+        cursor = session.execute(text("SHOW GRANTS"))
+        return cursor.fetchall()
 
     def get_users(self):
         """Get user info."""
-        cursor = self.session.execute(text(f"SELECT user, host FROM mysql.user"))
+        cursor = self.session.execute(text("SELECT user, host FROM mysql.user"))
         users = cursor.fetchall()
         return [(user[0], user[1]) for user in users]
 

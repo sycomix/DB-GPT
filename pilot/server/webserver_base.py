@@ -20,7 +20,7 @@ from pilot.connections.manages.connection_manager import ConnectManager
 ROOT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(ROOT_PATH)
 
-logger = build_logger("webserver", LOGDIR + "webserver.log")
+logger = build_logger("webserver", f"{LOGDIR}webserver.log")
 
 
 def signal_handler(sig, frame):

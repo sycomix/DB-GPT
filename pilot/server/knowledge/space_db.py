@@ -85,8 +85,7 @@ class KnowledgeSpaceDao:
         knowledge_spaces = knowledge_spaces.order_by(
             KnowledgeSpaceEntity.gmt_created.desc()
         )
-        result = knowledge_spaces.all()
-        return result
+        return knowledge_spaces.all()
 
     def update_knowledge_space(self, space_id: int, space: KnowledgeSpaceEntity):
         cursor = self.conn.cursor()

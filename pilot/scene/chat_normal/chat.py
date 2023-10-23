@@ -27,8 +27,7 @@ class ChatNormal(BaseChat):
         )
 
     def generate_input_values(self):
-        input_values = {"input": self.current_user_input}
-        return input_values
+        return {"input": self.current_user_input}
 
     def do_action(self, prompt_response):
         return prompt_response

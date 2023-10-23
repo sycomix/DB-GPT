@@ -33,10 +33,9 @@ def knowledged_qa_demo(text_list):
     service_context = ServiceContext.from_defaults(
         llm_predictor=llm_predictor, embed_model=embed_model
     )
-    index = GPTVectorStoreIndex.from_documents(
+    return GPTVectorStoreIndex.from_documents(
         documents, service_context=service_context
     )
-    return index
 
 
 def get_answer(q):

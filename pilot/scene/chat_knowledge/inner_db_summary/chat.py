@@ -30,11 +30,10 @@ class InnerChatDBSummary(BaseChat):
         self.db_summary = db_summary
 
     def generate_input_values(self):
-        input_values = {
+        return {
             "db_input": self.db_input,
             "db_profile_summary": self.db_summary,
         }
-        return input_values
 
     @property
     def chat_type(self) -> str:

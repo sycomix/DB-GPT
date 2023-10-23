@@ -59,8 +59,7 @@ class ChatUrlKnowledge(BaseChat):
         )
         context = [d.page_content for d in docs]
         context = context[:2000]
-        input_values = {"context": context, "question": self.current_user_input}
-        return input_values
+        return {"context": context, "question": self.current_user_input}
 
     @property
     def chat_type(self) -> str:

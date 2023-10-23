@@ -21,14 +21,14 @@ def guanaco_generate_output(model, tokenizer, params, device, context_len=2048):
     )
     stop_token_ids = [0]
 
+
+
     class StopOnTokens(StoppingCriteria):
         def __call__(
-            self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
-        ) -> bool:
-            for stop_id in stop_token_ids:
-                if input_ids[0][-1] == stop_id:
-                    return True
-            return False
+                    self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+                ) -> bool:
+            return any(input_ids[0][-1] == stop_id for stop_id in stop_token_ids)
+
 
     stop = StopOnTokens()
 
@@ -53,9 +53,7 @@ def guanaco_generate_output(model, tokenizer, params, device, context_len=2048):
         if output[-1] in [tokenizer.eos_token_id]:
             break
 
-        out = decoded_output.split("### Response:")[-1].strip()
-
-        yield out
+        yield decoded_output.split("### Response:")[-1].strip()
 
 
 def guanaco_generate_stream(model, tokenizer, params, device, context_len=2048):
@@ -80,14 +78,14 @@ def guanaco_generate_stream(model, tokenizer, params, device, context_len=2048):
     tokenizer.bos_token_id = 1
     stop_token_ids = [0]
 
+
+
     class StopOnTokens(StoppingCriteria):
         def __call__(
-            self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
-        ) -> bool:
-            for stop_id in stop_token_ids:
-                if input_ids[-1][-1] == stop_id:
-                    return True
-            return False
+                    self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+                ) -> bool:
+            return any(input_ids[-1][-1] == stop_id for stop_id in stop_token_ids)
+
 
     stop = StopOnTokens()
 

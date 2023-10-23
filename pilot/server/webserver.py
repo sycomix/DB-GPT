@@ -64,7 +64,7 @@ from pilot.openapi.api_v1.api_v1 import router as api_v1, validation_exception_h
 
 # 加载插件
 CFG = Config()
-logger = build_logger("webserver", LOGDIR + "webserver.log")
+logger = build_logger("webserver", f"{LOGDIR}webserver.log")
 headers = {"User-Agent": "dbgpt Client"}
 
 no_change_btn = gr.Button.update()
@@ -139,9 +139,10 @@ def get_simlar(q):
 
 
 def plugins_select_info():
-    plugins_infos: dict = {}
-    for plugin in CFG.plugins:
-        plugins_infos.update({f"【{plugin._name}】=>{plugin._description}": plugin._name})
+    plugins_infos: dict = {
+        f"【{plugin._name}】=>{plugin._description}": plugin._name
+        for plugin in CFG.plugins
+    }
     return plugins_infos
 
 
@@ -185,8 +186,7 @@ def load_demo(url_params, request: gr.Request):
 
 def get_conv_log_filename():
     t = datetime.datetime.now()
-    name = os.path.join(LOGDIR, f"{t.year}-{t.month:02d}-{t.day:02d}-conv.json")
-    return name
+    return os.path.join(LOGDIR, f"{t.year}-{t.month:02d}-{t.day:02d}-conv.json")
 
 
 def regenerate(state, request: gr.Request):

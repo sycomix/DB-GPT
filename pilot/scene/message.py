@@ -86,17 +86,21 @@ class OnceConversation:
         self.session_id = None
 
     def get_user_conv(self):
-        for message in self.messages:
-            if isinstance(message, HumanMessage):
-                return message
-        return None
+        return next(
+            (
+                message
+                for message in self.messages
+                if isinstance(message, HumanMessage)
+            ),
+            None,
+        )
 
     def get_system_conv(self):
-        system_convs = []
-        for message in self.messages:
-            if isinstance(message, SystemMessage):
-                system_convs.append(message)
-        return system_convs
+        return [
+            message
+            for message in self.messages
+            if isinstance(message, SystemMessage)
+        ]
 
 
 def _conversation_to_dic(once: OnceConversation) -> dict:

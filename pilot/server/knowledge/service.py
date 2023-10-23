@@ -117,10 +117,7 @@ class KnowledgeService:
                 space=space_name,
             )
             doc = knowledge_document_dao.get_knowledge_documents(query)[0]
-            if (
-                doc.status == SyncStatus.RUNNING.name
-                or doc.status == SyncStatus.FINISHED.name
-            ):
+            if doc.status in [SyncStatus.RUNNING.name, SyncStatus.FINISHED.name]:
                 raise Exception(
                     f" doc:{doc.doc_name} status is {doc.status}, can not sync"
                 )
@@ -224,6 +221,6 @@ class KnowledgeService:
             logger.info(f"async document embedding, success:{doc.doc_name}")
         except Exception as e:
             doc.status = SyncStatus.FAILED.name
-            doc.result = "document embedding failed" + str(e)
+            doc.result = f"document embedding failed{str(e)}"
             logger.error(f"document embedding, failed:{doc.doc_name}, {str(e)}")
         return knowledge_document_dao.update_knowledge_document(doc)

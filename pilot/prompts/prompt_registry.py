@@ -73,9 +73,7 @@ class PromptTemplateRegistry:
         print(
             f"Get prompt template of scene_name: {scene_name} with model_name: {model_name}, proxyllm_backend: {proxyllm_backend}, language: {language}"
         )
-        registry = None
-        if proxyllm_backend:
-            registry = scene_registry.get(proxyllm_backend)
+        registry = scene_registry.get(proxyllm_backend) if proxyllm_backend else None
         if not registry:
             registry = scene_registry.get(model_name)
         if not registry:

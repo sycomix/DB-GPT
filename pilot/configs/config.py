@@ -82,8 +82,7 @@ class Config(metaclass=Singleton):
         ### Related configuration of built-in commands
         self.command_registry = []
 
-        disabled_command_categories = os.getenv("DISABLED_COMMAND_CATEGORIES")
-        if disabled_command_categories:
+        if disabled_command_categories := os.getenv("DISABLED_COMMAND_CATEGORIES"):
             self.disabled_command_categories = disabled_command_categories.split(",")
         else:
             self.disabled_command_categories = []
@@ -101,14 +100,12 @@ class Config(metaclass=Singleton):
 
         self.plugins_git_branch = os.getenv("PLUGINS_GIT_BRANCH", "plugin_dashboard")
 
-        plugins_allowlist = os.getenv("ALLOWLISTED_PLUGINS")
-        if plugins_allowlist:
+        if plugins_allowlist := os.getenv("ALLOWLISTED_PLUGINS"):
             self.plugins_allowlist = plugins_allowlist.split(",")
         else:
             self.plugins_allowlist = []
 
-        plugins_denylist = os.getenv("DENYLISTED_PLUGINS")
-        if plugins_denylist:
+        if plugins_denylist := os.getenv("DENYLISTED_PLUGINS"):
             self.plugins_denylist = plugins_denylist.split(",")
         else:
             self.plugins_denylist = []

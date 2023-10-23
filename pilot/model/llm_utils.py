@@ -90,8 +90,6 @@ class Iteratorize:
                 pass
             except:
                 traceback.print_exc()
-                pass
-
             self.q.put(self.sentinel)
             if self.c_callback:
                 self.c_callback(ret)
@@ -124,7 +122,7 @@ def is_sentence_complete(output: str):
 
 def is_partial_stop(output: str, stop_str: str):
     """Check whether the output contains a partial stop str."""
-    for i in range(0, min(len(output), len(stop_str))):
-        if stop_str.startswith(output[-i:]):
-            return True
-    return False
+    return any(
+        stop_str.startswith(output[-i:])
+        for i in range(0, min(len(output), len(stop_str)))
+    )

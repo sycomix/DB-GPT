@@ -26,7 +26,7 @@ def raise_warning_for_incompatible_cpu_offloading_configuration(
                 "Continuing without cpu-offloading enabled\n"
             )
             return False
-        if not "linux" in sys.platform:
+        if "linux" not in sys.platform:
             warnings.warn(
                 "CPU-offloading is only supported on linux-systems due to the limited compatability with the bitsandbytes-package\n"
                 "Continuing without cpu-offloading enabled\n"
@@ -82,7 +82,7 @@ class ModelLoader(metaclass=Singleton):
 
                 available_gpu_memory = get_gpu_memory(num_gpus)
                 kwargs["max_memory"] = {
-                    i: str(int(available_gpu_memory[i] * 0.85)) + "GiB"
+                    i: f"{int(available_gpu_memory[i] * 0.85)}GiB"
                     for i in range(num_gpus)
                 }
 
@@ -116,11 +116,8 @@ class ModelLoader(metaclass=Singleton):
             # 4-bit not support this
             try:
                 model.to(self.device)
-            except ValueError:
+            except (ValueError, AttributeError):
                 pass
-            except AttributeError:
-                pass
-
         if debug:
             print(model)
 
